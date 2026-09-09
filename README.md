@@ -62,8 +62,8 @@ Before using APEX DRIVE, please carefully review the following requirements and 
 Say goodbye to constantly adjusting your assist levels. APEX DRIVE's intelligent Auto-Pilot continuously monitors your environment and riding style to seamlessly shift gears for you:
 * **Slope & Incline Sensing**: Detects hills in real-time using Barometric and Pitch sensor fusion, automatically ramping up power when you climb and saving battery on descents.
 * **Cadence Strain Recovery**: Senses when you're grinding at a low cadence on a steep hill and provides an instant torque boost.
-* **Adaptive Presets**: Choose your riding style—from **ECO PRO** (maximizing range) to **DYNAMIC eMTB** (aggressive torque for trail riding) or **BALANCED** for everyday commutes.
-* **Battery Guardian & Thermal Protection**: Automatically dials back power if your battery is critically low (≤15%) or if the motor temperature gets too hot (≥60°C).
+* **Adaptive Presets**: Choose your riding style—from **ECO PRO** (maximizing range) to **BALANCED** (everyday commutes), **DYNAMIC eMTB** (aggressive torque for trail riding), or **HAMMER** (maximum power performance with Level 3 base and automatic thermal degradation).
+* **Battery Guardian & Thermal Protection**: Automatically dials back power if your battery is critically low (≤15%) or if the motor temperature gets too hot (≥60°C, auto-degrading HAMMER mode to ECO CONSERVATIVE).
 
 ### 📈 Professional Telemetry & Crash-Proof Logging
 Turn your smartphone into a high-performance bike computer.
