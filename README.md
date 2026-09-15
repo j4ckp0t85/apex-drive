@@ -63,6 +63,9 @@ Say goodbye to constantly adjusting your assist levels. APEX DRIVE's intelligent
 * **Slope & Incline Sensing**: Detects hills in real-time using Barometric and Pitch sensor fusion, automatically ramping up power when you climb and saving battery on descents.
 * **Cadence Strain Recovery**: Senses when you're grinding at a low cadence on a steep hill and provides an instant torque boost.
 * **Adaptive Presets**: Choose your riding style—from **ECO PRO** (maximizing range) to **BALANCED** (everyday commutes), **DYNAMIC eMTB** (aggressive torque for trail riding), or **HAMMER** (maximum power performance with Level 3 base and automatic thermal degradation).
+* **Configurable Decision Reactivity**: Choose between two physical response behaviors directly in Settings:
+  * **⚡ FAST / REACTIVE (Default)**: Engineered for instantaneous ramp and climb assistance
+  * **🛡️ SMOOTH / RELAXED**: Engineered for steady, relaxed cruising with maximum bump and vibration suppression
 * **Battery Guardian & Thermal Protection**: Automatically dials back power if your battery is critically low (≤15%) or if the motor temperature gets too hot (≥60°C, auto-degrading HAMMER mode to ECO CONSERVATIVE).
 
 ### 📈 Professional Telemetry & Crash-Proof Logging
