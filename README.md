@@ -14,7 +14,7 @@
 
 **APEX DRIVE** is the ultimate Android companion application for e-bikes powered by the Tongsheng TSDZ2 Mid-Drive Motor and Varstrom EKD01 display.
 
-Designed with a sleek, cyberpunk-inspired Obsidian dashboard, APEX DRIVE completely replaces the need for the official app, offering direct Bluetooth control, smart autonomous riding features, and professional-grade telemetry.
+Designed with a sleek, cyberpunk-inspired Obsidian dashboard, APEX DRIVE completely replaces the need for the official app, offering direct Bluetooth control, smart autonomous riding features, and transparent telemetry. Values that are not exposed by the EKD01 BLE protocol are clearly treated as estimates, not as direct sensor readings.
 
 ---
 
@@ -40,14 +40,17 @@ Before using APEX DRIVE, please carefully review the following requirements and 
 
 2. **BLE & Firmware Telemetry Limitations**: 
    Due to hardware and protocol boundaries on current OSF over Bluetooth Low Energy:
-   * **Cadence RPM is an Estimation**: Pedaling cadence values displayed and used by the app are calculated estimates rather than direct hardware sensor readings.
+   * **Speed, battery %, assist level and light state are read from EKD01 BLE telemetry.**
+   * **Motor Watts, Rider Watts, Cadence RPM and Motor/Controller Temperature are estimates/derived values in the current release.** The TSDZ2 motor firmware sends real battery power to the EKD01 display over UART, but the current Android BLE parser has not yet verified a stable BLE field that exposes that value without altering the speed field.
+   * **Cadence RPM is an estimation** unless a future verified BLE field or external cadence sensor is integrated.
+   * **Thermal values are not hardware temperature readings** on firmware profiles where the TSDZ2 temperature sensor path is disabled; they are computed indicators for UI continuity and should not be used as the only thermal-protection source.
    * **Startup Assist Program Identification**: The app cannot read which assist program is active upon motor boot. Therefore, **Auto Assist must NOT be enabled if your default startup program is CRUISE MODE**. Auto Assist should only be used after deploying a known assist program directly from the app.
 
 3. **Stationary Execution Only**: 
    Changing assist programs or sending macro configuration commands is **only permitted when the bike is stationary (0 km/h)** to ensure safety and proper state synchronization.
 
 4. **Startup & Program Switching Delay**: 
-   As recommended by emmebrusa, always **wait a few seconds** after turning on the motor or after deploying a new assist program before you start riding/pedaling.
+   As recommended by emmebrusa, always **wait a few seconds** after turning on the motor or after deploying a new assist program before you start riding/pedaling. To prevent the OSF firmware's diagnostic display values from being interpreted as BLE speed, configure the firmware with **Auto display data with lights on disabled**, **Number of data displayed at lights on set to 0**, and **Data display on startup disabled/None (0)**. The first two settings prevent the automatic diagnostic cycle triggered by the light-button sequence used when applying programs; the startup setting is separate and is required to suppress the boot-time diagnostic value. Setting the number of displayed data to 0 alone is not sufficient on all OSF builds. These settings do not disable manual parameter or sensor-calibration screens, so APEX DRIVE must still treat incoming telemetry as untrusted during firmware transitions.
 
 5. **Smartphone Mount & Pitch Sensor Calibration**: 
    Since **Auto Assist** relies on smartphone sensors (accelerometer, gyroscope, barometric sensor) for slope and incline detection:
@@ -70,18 +73,41 @@ Say goodbye to constantly adjusting your assist levels. APEX DRIVE's intelligent
 
 ### 📈 Professional Telemetry & Crash-Proof Logging
 Turn your smartphone into a high-performance bike computer.
-* **Live Cockpit**: A beautiful 60fps hardware-accelerated dashboard displaying Speed, Motor Watts, Rider Watts (bio-mechanical effort), Cadence RPM, Battery %, and Motor/Controller Temperature.
+* **Live Cockpit**: A beautiful 60fps hardware-accelerated dashboard displaying measured EKD01 telemetry together with modeled Motor Watts, Rider Watts, Cadence RPM, Battery %, and Motor/Controller Temperature indicators.
 * **Disk-Streaming Logger**: Every second of your ride is logged into a CSV file. The system is 100% crash-proof—if your phone dies, zero data is lost.
-* **Post-Ride Analytics**: Export your ride data to view dual power spectrums (Motor vs Rider), thermal dynamics, and battery discharge curves.
+* **Post-Ride Analytics**: Export your ride data to view modeled motor/rider power trends, thermal indicators, and battery discharge curves.
+
+### USB telemetry publishing
+
+> **Current release limitation: [ApexTelemetry](https://github.com/j4ckp0t85/apex-telemetry) direct phone synchronization is supported on Windows only.**
+
+Completed connection sessions are copied automatically to `Download/ApexDrive/Telemetry/` on the phone. The CSV and its `.ready.json` manifest are written and verified before they become visible over USB. A failed copy remains retryable and never removes the private recording.
+
+To sync from ApexTelemetry on Windows:
+
+1. Unlock the phone and choose **File transfer / Android Auto** from the USB notification.
+2. Do not use **Photo transfer (PTP)**. If Windows shows only `DCIM` and `Pictures`, switch USB mode; those folders do not expose telemetry files.
+3. If Device Manager shows an **MTP device** with a yellow question mark, install the driver manually: **Update driver** → **Browse my computer for drivers** → **Let me pick from a list of available drivers** → **Portable Devices** → **MTP USB Device**.
+4. Keep the phone unlocked while Electron finds the phone and starts synchronization. USB debugging and ADB are not required.
+
+The Electron sync is Windows-only in the current release because it uses the Windows Portable Devices (WPD) API. macOS and Linux support is technically possible, but requires separate native MTP adapters exposing device discovery, folder enumeration, streamed read, cancellation, timeout, and disconnect handling. It would also require per-platform binaries, architecture-specific packaging, permissions/driver setup, and physical-device validation. The Android publisher itself is platform-independent.
 
 ### 🎛️ Live OSF Configuration & Macro Engine
 Take full control over the Open Source Firmware (OSF) directly from your screen.
 * **OSF Program Automation**: Switch between 15 built-in modes (e.g., Street/Off-Road Mode, Cruise Mode, eMTB Assist) with a single tap. APEX DRIVE automatically handles the complex sequence of button presses on the display for you.
-* **Dynamic .INI Profile Import**: It is highly important to import your specific motor profile (`.ini` file). This file is derived directly from the Java Configurator of the [emmebrusa OSF](https://github.com/emmebrusa/TSDZ2-Smart-EBike-1). Importing it calibrates accurate road load physics, battery limits, and range estimation, ensuring the telemetry and Watts displayed on your phone perfectly match reality.
+* **Dynamic .INI Profile Import**: It is highly important to import your specific motor profile (`.ini` file). This file is derived directly from the Java Configurator of the [emmebrusa OSF](https://github.com/emmebrusa/TSDZ2-Smart-EBike-1). Importing it calibrates road-load physics, assist ratios, battery limits, and range estimation. It improves the modeled Watts shown on the phone, but does not turn estimated values into direct controller measurements.
 
 ### 📱 Uninterrupted Background Execution
 Keep your phone in your pocket. APEX DRIVE uses advanced foreground services and wake locks to maintain a rock-solid BLE connection and continuous Auto-Pilot operation even when your screen is locked. A persistent lock-screen notification keeps you updated on your speed, current slope, and active assist level.
 
+
+## 📡 Telemetry: Measurements vs Estimates
+
+APEX DRIVE receives its live data through the EKD01 display BLE protocol. In the current verified parser, speed, battery percentage, assist level and light state are read from BLE notifications. Motor Watts, Rider Watts, Cadence RPM, battery voltage/current and temperature values are derived by the app from speed, acceleration, battery %, the imported OSF `.ini` profile and the selected assist level.
+
+The TSDZ2 motor controller firmware already sends battery electrical power to the EKD01 over its internal UART link in 10 W units. A future release may be able to decode that same value from BLE if a real notification field is confirmed by passive capture. Until then, APEX DRIVE does not multiplex telemetry through the speed field, because that can cause display flicker and incorrect distance accounting.
+
+These modeled values are useful for ride trends, Auto Assist decisions and post-ride analysis, but they should be read as transparent estimates unless the UI explicitly marks them as hardware-measured.
 ---
 
 ## 🚀 Getting Started
