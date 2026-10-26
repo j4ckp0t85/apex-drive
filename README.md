@@ -35,10 +35,10 @@ If you enjoy the app and want to support ongoing development, optimizations, and
 
 Before using APEX DRIVE, please carefully review the following requirements and operational notes:
 
-1. **Designed Exclusively for emmebrusa OSF Firmware**: 
+1. **Designed Exclusively for emmebrusa OSF Firmware**:
    APEX DRIVE is specifically engineered as an extension for the [emmebrusa Open Source Firmware (OSF)](https://github.com/emmebrusa/TSDZ2-Smart-EBike-1). The app relies on custom commands and protocol behavior unique to this modified firmware. **Using APEX DRIVE with stock TSDZ2 firmware or with this display paired to any other motor model is essentially useless.**
 
-2. **BLE & Firmware Telemetry Limitations**: 
+2. **BLE & Firmware Telemetry Limitations**:
    Due to hardware and protocol boundaries on current OSF over Bluetooth Low Energy:
    * **Speed, battery %, assist level and light state are read from EKD01 BLE telemetry.**
    * **Motor Watts, Rider Watts, Cadence RPM and Motor/Controller Temperature are estimates/derived values in the current release.** The TSDZ2 motor firmware sends real battery power to the EKD01 display over UART, but the current Android BLE parser has not yet verified a stable BLE field that exposes that value without altering the speed field.
@@ -46,13 +46,13 @@ Before using APEX DRIVE, please carefully review the following requirements and 
    * **Thermal values are not hardware temperature readings** on firmware profiles where the TSDZ2 temperature sensor path is disabled; they are computed indicators for UI continuity and should not be used as the only thermal-protection source.
    * **Startup Assist Program Identification**: The app cannot read which assist program is active upon motor boot. Therefore, **Auto Assist must NOT be enabled if your default startup program is CRUISE MODE**. Auto Assist should only be used after deploying a known assist program directly from the app.
 
-3. **Stationary Execution Only**: 
+3. **Stationary Execution Only**:
    Changing assist programs or sending macro configuration commands is **only permitted when the bike is stationary (0 km/h)** to ensure safety and proper state synchronization.
 
-4. **Startup & Program Switching Delay**: 
+4. **Startup & Program Switching Delay**:
    As recommended by emmebrusa, always **wait a few seconds** after turning on the motor or after deploying a new assist program before you start riding/pedaling. To prevent the OSF firmware's diagnostic display values from being interpreted as BLE speed, configure the firmware with **Auto display data with lights on disabled**, **Number of data displayed at lights on set to 0**, and **Data display on startup disabled/None (0)**. The first two settings prevent the automatic diagnostic cycle triggered by the light-button sequence used when applying programs; the startup setting is separate and is required to suppress the boot-time diagnostic value. Setting the number of displayed data to 0 alone is not sufficient on all OSF builds. These settings do not disable manual parameter or sensor-calibration screens, so APEX DRIVE must still treat incoming telemetry as untrusted during firmware transitions.
 
-5. **Smartphone Mount & Pitch Sensor Calibration**: 
+5. **Smartphone Mount & Pitch Sensor Calibration**:
    Since **Auto Assist** relies on smartphone sensors (accelerometer, gyroscope, barometric sensor) for slope and incline detection:
    * The smartphone **must be securely fixed to a handlebar phone mount** while riding.
    * Before using Auto Assist, perform a **pitch sensor calibration in the Settings tab while stationary on level ground (0° slope)** to ensure accurate slope readings and correct pilot behavior.
@@ -75,15 +75,17 @@ Say goodbye to constantly adjusting your assist levels. APEX DRIVE's intelligent
 Turn your smartphone into a high-performance bike computer.
 * **Live Cockpit**: A beautiful 60fps hardware-accelerated dashboard displaying measured EKD01 telemetry together with modeled Motor Watts, Rider Watts, Cadence RPM, Battery %, and Motor/Controller Temperature indicators.
 * **Disk-Streaming Logger**: Every second of your ride is logged into a CSV file. The system is 100% crash-proof—if your phone dies, zero data is lost.
-* **Post-Ride Analytics**: Export your ride data to view modeled motor/rider power trends, thermal indicators, and battery discharge curves.
+* **Post-Ride Analytics**: Export your ride data to view modeled motor/rider power trends, thermal indicators, and battery discharge curves. You can use the companion application [APEX Telemetry](https://github.com/j4ckp0t85/apex-telemetry) on Windows to directly sync, import, and visualize recorded telemetry sessions.
 
 ### USB telemetry publishing
 
-> **Current release limitation: [ApexTelemetry](https://github.com/j4ckp0t85/apex-telemetry) direct phone synchronization is supported on Windows only.**
+> **Current release limitation: [APEX Telemetry](https://github.com/j4ckp0t85/apex-telemetry) direct phone synchronization is supported on Windows only.**
 
 Completed connection sessions are copied automatically to `Download/ApexDrive/Telemetry/` on the phone. The CSV and its `.ready.json` manifest are written and verified before they become visible over USB. A failed copy remains retryable and never removes the private recording.
 
-To sync from ApexTelemetry on Windows:
+New telemetry CSVs append `GPS_Latitude` and `GPS_Longitude` to the original 18 columns. Each sample includes the latest phone GPS coordinates when the fix is at most 10 seconds old; unavailable coordinates are written as literal `null` values. GPS recording works independently of Auto Assist. Historical 18-column files remain supported during import and recovery.
+
+To sync from APEX Telemetry on Windows:
 
 1. Unlock the phone and choose **File transfer / Android Auto** from the USB notification.
 2. Do not use **Photo transfer (PTP)**. If Windows shows only `DCIM` and `Pictures`, switch USB mode; those folders do not expose telemetry files.
@@ -95,7 +97,20 @@ The Electron sync is Windows-only in the current release because it uses the Win
 ### 🎛️ Live OSF Configuration & Macro Engine
 Take full control over the Open Source Firmware (OSF) directly from your screen.
 * **OSF Program Automation**: Switch between 15 built-in modes (e.g., Street/Off-Road Mode, Cruise Mode, eMTB Assist) with a single tap. APEX DRIVE automatically handles the complex sequence of button presses on the display for you.
-* **Dynamic .INI Profile Import**: It is highly important to import your specific motor profile (`.ini` file). This file is derived directly from the Java Configurator of the [emmebrusa OSF](https://github.com/emmebrusa/TSDZ2-Smart-EBike-1). Importing it calibrates road-load physics, assist ratios, battery limits, and range estimation. It improves the modeled Watts shown on the phone, but does not turn estimated values into direct controller measurements.
+* **Dynamic .INI Profile Import**: It is highly important to import your specific motor profile (`.ini` file). This file is derived directly from the Java Configurator of the [emmebrusa OSF](https://github.com/emmebrusa/TSDZ2-Smart-EBike-1). Importing it calibrates road-load physics, assist ratios, battery limits, and range estimation. It improves the modeled Watts shown on the phone, but does not turn estimated values into direct controller measurements. You can also use the companion Windows tool [APEX Importer](https://github.com/j4ckp0t85/apex-importer.git) to seamlessly transfer and import configuration files produced with the TSDZ2 emmebrusa configurator directly to APEX Drive via USB.
+
+### USB configuration import from Windows
+
+APEX Drive can receive profiles from the **[APEX Importer](https://github.com/j4ckp0t85/apex-importer.git)** Windows companion without manually locating an INI on the phone. A Windows companion is necessary: a phone in ordinary USB file-transfer mode cannot browse the laptop's configurator directory.
+
+1. Start APEX Importer on Windows, select the configurator directory (or `JavaConfigurator.jar`), and unlock the connected phone in **File transfer / Android Auto** mode. The companion lists INIs from `experimental settings`, newest first, with the newest selected.
+2. Select the phone's **internal storage**. Prepare its inbox with APEX Importer, or create `Download/ApexDrive/Imports` in the Android folder picker.
+3. On the phone, tap **USB CONFIGURATION IMPORT** on the disconnected connection screen, or use the USB import controls in **Settings**. Grant access specifically to **Internal storage > Download > ApexDrive > Imports** once. No bike connection is needed for setup or importing.
+4. Keep APEX Drive open and the phone unlocked, then press **Import** in APEX Importer. Validated profiles use the same persistence, BLE model and UI update path as manual imports. This does **not** flash firmware or automatically send a program to the bike.
+
+The receiver checks the inbox every two seconds while the activity is visible. Transfers received while APEX Drive is closed or backgrounded are processed on its next resume; imports received while the connected bike is moving wait until it stops. Incomplete markers or payloads get at least a minute of retries before rejection, allowing for slow MTP visibility. Windows reports import success only after the phone returns an acknowledgement, not just after copying a file. Use **Disable USB import** to revoke access. Manual INI import remains available.
+
+The companion snapshots the selected INI, sends `apex-<transferId>.ini`, then publishes `apex-<transferId>.ready.json` last. The version-1 manifest includes the original name, byte count (maximum 1 MiB), SHA-256 and UTC timestamp. APEX Drive verifies integrity and recognized INI settings before applying it, persists the profile and transfer receipt together, and writes `apex-<transferId>.result.json` (`imported` or `rejected`). Saved receipts prevent replay after a restart; failed acknowledgement writes are retried without importing twice. Payloads, manifests and results remain in the shared inbox for verification; remove completed batches yourself when no transfer is pending. Only enable the inbox for a trusted computer. No internet access, USB debugging or all-files permission is required.
 
 ### 📱 Uninterrupted Background Execution
 Keep your phone in your pocket. APEX DRIVE uses advanced foreground services and wake locks to maintain a rock-solid BLE connection and continuous Auto-Pilot operation even when your screen is locked. A persistent lock-screen notification keeps you updated on your speed, current slope, and active assist level.
@@ -126,7 +141,7 @@ These modeled values are useful for ride trends, Auto Assist decisions and post-
 For APEX DRIVE to function reliably—especially when riding with your phone locked or in a pocket—the following permissions and battery settings must be configured:
 
 * **Nearby Devices / Bluetooth & Location (Precise Location)**:
-  * **Why it is needed**: Android requires Location services enabled to scan for nearby Bluetooth Low Energy (BLE) devices. APEX DRIVE also uses GPS for slope cross-validation and sensor auto-calibration.
+  * **Why it is needed**: Android requires Location services enabled to scan for nearby Bluetooth Low Energy (BLE) devices. APEX DRIVE also uses GPS for slope cross-validation, sensor auto-calibration, and coordinates in local ride telemetry CSVs.
   * **Setup**: Grant **"Precise Location"** permission and ensure your phone's GPS is enabled.
 
 * **Battery Optimization (Set to "Unrestricted")**:
@@ -174,7 +189,7 @@ In compliance with **Regulation (EU) 2024/1689 (European Union AI Act)**:
 
 APEX DRIVE is released as **Proprietary Freeware (All Rights Reserved)**.
 * **Binary Distribution Only**: The official application is distributed exclusively as pre-compiled binary `.apk` packages via the repository's **Releases** section.
-* **Closed Source**: The source code is closed-source and proprietary. 
+* **Closed Source**: The source code is closed-source and proprietary.
 * **Restrictions**: Reverse engineering, decompilation, unauthorized modification, commercial monetization, or redistributing/re-hosting APKs on third-party stores or websites without written consent is strictly prohibited.
 * For the full End User License Agreement, read [LICENSE](LICENSE).
 
